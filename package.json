@@ -1,0 +1,7 @@
+{
+  "name": "banana-traveller",
+  "private": true,
+  "type": "module",
+  "description": "Private travel memories app for a group of friends (HTML + Supabase + Vercel)",
+  "engines": { "node": ">=18" }
+}
