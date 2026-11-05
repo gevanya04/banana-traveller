@@ -4,5 +4,5 @@
 // in supabase/schema.sql are what keep everything private.
 // NEVER put the service_role / secret key in this file.
 
-export const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
-export const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+export const SUPABASE_URL = 'https://idisbmebrbfebgyxnfeg.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_4abRYbQdzGBYOEOPZ4kDvw_t5WWKzh8';
