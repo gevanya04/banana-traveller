@@ -11,12 +11,13 @@ create table if not exists public.profiles (
   display_name text not null,
   avatar_path  text,
   role         text not null default 'member' check (role in ('admin', 'member')),
-  status       text not null default 'pending' check (status in ('pending', 'approved')),
+  status       text not null default 'approved' check (status in ('pending', 'approved')),
   created_at   timestamptz not null default now()
 );
 
 -- Create a profile automatically whenever a user is invited or signs up.
--- Invited people are approved straight away; self sign-ups wait for the admin.
+-- Everyone is approved straight away. (To require admin approval for sign-ups,
+-- change the status below to 'pending' — the app's Admin section handles approvals.)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -27,7 +28,7 @@ begin
     new.id,
     new.email,
     left(coalesce(wanted, initcap(split_part(new.email, '@', 1))), 40),
-    case when new.invited_at is not null then 'approved' else 'pending' end
+    'approved'
   )
   on conflict (id) do nothing;
   return new;

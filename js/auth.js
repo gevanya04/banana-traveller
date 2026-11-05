@@ -32,8 +32,7 @@ export function renderLogin(root, notice = '', mode = 'signin') {
         <label>Password<input name="password" type="password" minlength="8" autocomplete="new-password" required>
           <span class="muted small">At least 8 characters</span></label>
         <button class="btn btn-primary" type="submit">Create account</button>
-      </form>
-      <p class="muted small">The admin approves new accounts before you can see the group.</p>` : `
+      </form>` : `
       <form id="login" class="stack">
         <label>Email<input name="email" type="email" autocomplete="email" required></label>
         <label>Password<input name="password" type="password" autocomplete="current-password" required></label>

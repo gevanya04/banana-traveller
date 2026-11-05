@@ -60,7 +60,7 @@ export async function render(root) {
               <button class="btn btn-sm btn-primary" type="button" data-approve="${m.id}">Approve</button>
               <button class="btn btn-sm btn-ghost danger" type="button" data-decline="${m.id}">Decline</button>
             </div>`).join('')}
-        </div>` : `<p class="muted small">Friends can create an account on the sign-in page. New accounts appear here for you to approve.</p>`}
+        </div>` : `<p class="muted small">Friends can create their own account on the sign-in page, or you can invite them by email.</p>`}
         <p class="list-label">Or invite someone by email</p>
         <form id="invite-form" class="inline-form" style="margin-top:0">
           <label class="grow">Friend's email<input name="email" type="email" required placeholder="friend@email.com"></label>
