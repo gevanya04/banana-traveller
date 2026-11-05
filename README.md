@@ -1,6 +1,6 @@
 # 🍌 Banana Traveller
 
-A private, invite-only app for our travel crew: share photos and videos, react and comment, poke each other, chat (squad chat + private DMs), and plan events with an **Add to Google Calendar** button.
+A private app for our travel crew: share photos and videos, react and comment, poke each other, chat (squad chat + private DMs), and plan events with an **Add to Google Calendar** button.
 
 Built with plain HTML/CSS/JavaScript, **Supabase** (login, database, private file storage, realtime) and **Vercel** (hosting + two small admin functions).
 
@@ -11,7 +11,7 @@ Built with plain HTML/CSS/JavaScript, **Supabase** (login, database, private fil
 ### 1. Create the Supabase project
 1. Go to [supabase.com](https://supabase.com) → **New project**. Pick the Singapore region if offered.
 2. Open **SQL Editor → New query**, paste everything in [`supabase/schema.sql`](supabase/schema.sql), and click **Run**.
-3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up". (Only invited people can join.)
+3. **Authentication → Sign In / Providers**: keep **"Allow new users to sign up"** on, so friends can create accounts. New accounts wait for the admin to approve them before they can see anything.
 4. **Authentication → URL Configuration**:
    - **Site URL**: your Vercel address, e.g. `https://banana-traveller.vercel.app`
    - **Redirect URLs**: add the same address with `/**` on the end, e.g. `https://banana-traveller.vercel.app/**`
@@ -38,7 +38,7 @@ Edit [`config.js`](config.js) in this repo and paste in the **Project URL** and 
    ```sql
    update public.profiles set role = 'admin' where email = 'you@example.com';
    ```
-4. Refresh the app. The **Me** tab now has an **Admin** section where you invite and remove friends.
+4. Refresh the app. The **Me** tab now has an **Admin** section where you approve new sign-ups, invite friends by email, and remove members.
 
 ---
 
@@ -46,7 +46,8 @@ Edit [`config.js`](config.js) in this repo and paste in the **Project URL** and 
 
 - **Privacy**: every table has row-level security. Nothing is readable unless you're a signed-in member. Photos and videos live in a private bucket and load through links that expire after an hour. Search engines are told not to index the site.
 - **Direct messages** are visible only to the two people in them — not even the admin can read them. The admin can delete messages in the squad chat.
-- **Admin** can invite and remove members, and delete any memory, comment or event.
+- **Sign-up with approval**: friends tap **Create account** on the sign-in page, confirm their email, then wait on a "nearly in" screen until the admin taps **Approve**. People invited by email skip the approval.
+- **Admin** can approve, invite and remove members, and delete any memory, comment or event.
 - **Removing a member** deletes their account, uploads, comments, reactions, pokes, messages and the events they created.
 - **Google Calendar**: each event has an "Add to Google Calendar" button that opens Google Calendar pre-filled. It's a copy — if the event changes in the app, tap the button again.
 

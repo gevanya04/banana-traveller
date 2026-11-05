@@ -21,7 +21,8 @@ export const BUCKET = 'media';
 export const state = {
   user: null,
   profile: null,
-  profiles: new Map(),
+  profiles: new Map(),   // approved members
+  pending: [],           // sign-ups waiting for approval (admin only)
 };
 
 export const isAdmin = () => state.profile?.role === 'admin';
@@ -84,14 +85,16 @@ export const cachedUrl = (p) => urlCache.get(p)?.url || '';
 export async function loadProfiles() {
   const { data, error } = await sb.from('profiles').select('*').order('display_name');
   if (error) throw error;
-  state.profiles = new Map(data.map((p) => [p.id, p]));
-  state.profile = state.profiles.get(me()) || null;
+  state.profile = data.find((p) => p.id === me()) || null;
+  state.profiles = new Map(data.filter((p) => p.status !== 'pending').map((p) => [p.id, p]));
+  state.pending = data.filter((p) => p.status === 'pending' && p.id !== me());
   await signedUrls(data.map((p) => p.avatar_path));
   return data;
 }
 
 export const person = (id) =>
-  state.profiles.get(id) || { id, display_name: 'Former member', avatar_path: null };
+  state.profiles.get(id) || state.pending.find((p) => p.id === id)
+  || { id, display_name: 'Former member', avatar_path: null };
 
 const HUES = [48, 172, 8, 205, 280, 130, 330, 25];
 export function avatar(id, size = 40) {

@@ -1,5 +1,5 @@
 import { sb, state, me, authLink, configured, loadProfiles, toast, person, emit, setBadge, errMsg } from './core.js';
-import { renderLogin, renderNotConfigured, renderSetPassword } from './auth.js';
+import { renderLogin, renderNotConfigured, renderSetPassword, renderPending } from './auth.js';
 import * as feed from './feed.js';
 import * as events from './events.js';
 import * as chat from './chat.js';
@@ -80,7 +80,21 @@ async function startApp() {
   if (!state.profile) {
     started = false;
     await sb.auth.signOut();
-    renderLogin(app, "Your account isn't set up in Banana Traveller. Ask the admin to invite you again.");
+    renderLogin(app, "Your account isn't set up in Banana Traveller. Try creating it again.");
+    return;
+  }
+  if (state.profile.status === 'pending') {
+    started = false;
+    tabbar.hidden = true;
+    document.body.dataset.view = 'auth';
+    renderPending(app, {
+      name: state.profile.display_name,
+      onCheck: async () => {
+        await loadProfiles();
+        if (state.profile?.status === 'approved') { toast('You’re approved. Welcome!'); startApp(); }
+        else toast('Still waiting for the admin.');
+      },
+    });
     return;
   }
   tabbar.hidden = false;
@@ -88,6 +102,7 @@ async function startApp() {
   if (!location.hash || location.hash.includes('access_token')) history.replaceState(null, '', '#feed');
   await route();
   chat.hasUnread().then((u) => setBadge('chat', u));
+  setBadge('me', state.pending.length > 0);
   friends.unseenPokes().then((n) => setBadge('friends', n > 0 && !location.hash.startsWith('#friends')));
 }
 
@@ -145,7 +160,7 @@ window.addEventListener('hashchange', () => { if (started) route(); });
 
 // Before sign-in, onAuthStateChange must be listening too
 sb.auth.onAuthStateChange((event, s) => {
-  if (!started && event === 'SIGNED_IN' && !pendingPasswordSetup && document.getElementById('login')) {
+  if (!started && event === 'SIGNED_IN' && !pendingPasswordSetup && document.querySelector('.auth form')) {
     setTimeout(() => handleSession(s), 0);
   }
 });

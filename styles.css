@@ -100,6 +100,10 @@ body[data-view="auth"] { background: var(--ink); }
 .auth-brand p { margin: 16px 0 0; color: #b9cfcc; font-size: 1.05rem; }
 .auth-card { background: var(--paper); border-radius: var(--r-lg); padding: 24px 20px; }
 .auth-card h2 { font-size: 1.5rem; margin-bottom: 16px; }
+.auth-switch { display: grid; grid-template-columns: 1fr 1fr; background: #e3ebe9; border-radius: 999px; padding: 4px; margin-bottom: 18px; }
+.auth-switch button { border: 0; background: none; border-radius: 999px; padding: 9px 10px; font-weight: 700; cursor: pointer; color: var(--muted); }
+.auth-switch button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(19, 52, 59, .15); }
+.pending-row { background: #fffaf0; }
 .notice { background: #fff4cc; border-radius: var(--r-sm); padding: 10px 12px; font-size: .9rem; }
 
 /* ---------- page header ---------- */

@@ -11,15 +11,24 @@ create table if not exists public.profiles (
   display_name text not null,
   avatar_path  text,
   role         text not null default 'member' check (role in ('admin', 'member')),
+  status       text not null default 'pending' check (status in ('pending', 'approved')),
   created_at   timestamptz not null default now()
 );
 
--- Create a profile automatically whenever a user is invited / created
+-- Create a profile automatically whenever a user is invited or signs up.
+-- Invited people are approved straight away; self sign-ups wait for the admin.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  wanted text := nullif(trim(coalesce(new.raw_user_meta_data->>'display_name', '')), '');
 begin
-  insert into public.profiles (id, email, display_name)
-  values (new.id, new.email, initcap(split_part(new.email, '@', 1)))
+  insert into public.profiles (id, email, display_name, status)
+  values (
+    new.id,
+    new.email,
+    left(coalesce(wanted, initcap(split_part(new.email, '@', 1))), 40),
+    case when new.invited_at is not null then 'approved' else 'pending' end
+  )
   on conflict (id) do nothing;
   return new;
 end $$;
@@ -32,13 +41,25 @@ create trigger on_auth_user_created
 -- Helper checks (security definer so they don't loop through RLS)
 create or replace function public.is_member()
 returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles where id = auth.uid());
+  select exists (select 1 from public.profiles where id = auth.uid() and status = 'approved');
 $$;
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
+  select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin' and status = 'approved');
 $$;
+
+-- Admin approves a pending sign-up
+create or replace function public.approve_member(member_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only the admin can approve members';
+  end if;
+  update public.profiles set status = 'approved' where id = member_id;
+end $$;
+revoke execute on function public.approve_member(uuid) from public, anon;
+grant execute on function public.approve_member(uuid) to authenticated;
 
 -- Only the trigger may run handle_new_user; helpers are for signed-in members only
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
@@ -118,9 +139,12 @@ alter table public.pokes            enable row level security;
 alter table public.messages         enable row level security;
 alter table public.events           enable row level security;
 
--- Profiles: members see each other; you may only edit your own name/photo
+-- Profiles: members see approved members, you always see yourself, admin sees
+-- everyone (including pending sign-ups). You may only edit your own name/photo.
 drop policy if exists "profiles read" on public.profiles;
-create policy "profiles read" on public.profiles for select using (public.is_member());
+create policy "profiles read" on public.profiles for select using (
+  id = auth.uid() or public.is_admin() or (public.is_member() and status = 'approved')
+);
 drop policy if exists "profiles update self" on public.profiles;
 create policy "profiles update self" on public.profiles for update
   using (id = auth.uid()) with check (id = auth.uid());

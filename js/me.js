@@ -1,4 +1,4 @@
-import { sb, state, me, isAdmin, esc, toast, errMsg, avatar, loadProfiles, BUCKET } from './core.js';
+import { sb, state, me, isAdmin, esc, toast, errMsg, avatar, loadProfiles, setBadge, BUCKET } from './core.js';
 
 const MAX_AVATAR = 5 * 1024 * 1024;
 
@@ -50,10 +50,21 @@ export async function render(root) {
       ${isAdmin() ? `
       <section class="panel panel-admin">
         <h2>Admin</h2>
-        <p class="muted small">Only people you invite can join. They'll get an email to set their password.</p>
-        <form id="invite-form" class="inline-form">
+        ${state.pending.length ? `
+        <p class="list-label">Waiting for approval (${state.pending.length})</p>
+        <div class="members pending">
+          ${state.pending.map((m) => `
+            <div class="member pending-row">
+              ${avatar(m.id, 34)}
+              <div class="grow"><strong>${esc(m.display_name)}</strong><span class="muted small">${esc(m.email)}</span></div>
+              <button class="btn btn-sm btn-primary" type="button" data-approve="${m.id}">Approve</button>
+              <button class="btn btn-sm btn-ghost danger" type="button" data-decline="${m.id}">Decline</button>
+            </div>`).join('')}
+        </div>` : `<p class="muted small">Friends can create an account on the sign-in page. New accounts appear here for you to approve.</p>`}
+        <p class="list-label">Or invite someone by email</p>
+        <form id="invite-form" class="inline-form" style="margin-top:0">
           <label class="grow">Friend's email<input name="email" type="email" required placeholder="friend@email.com"></label>
-          <button class="btn btn-primary" type="submit">Send invite</button>
+          <button class="btn btn-ghost" type="submit">Send invite</button>
         </form>
         <p class="list-label">Members (${members.length})</p>
         <div class="members">
@@ -126,7 +137,31 @@ export async function render(root) {
       btn.disabled = false; btn.textContent = 'Send invite';
     });
 
-    root.querySelector('.members').addEventListener('click', async (e) => {
+    root.querySelector('.members.pending')?.addEventListener('click', async (e) => {
+      const ok = e.target.closest('[data-approve]');
+      const no = e.target.closest('[data-decline]');
+      if (!ok && !no) return;
+      const m = state.pending.find((x) => x.id === (ok || no).dataset[ok ? 'approve' : 'decline']);
+      if (no && !confirm(`Decline ${m.display_name}? Their account will be deleted.`)) return;
+      (ok || no).disabled = true;
+      try {
+        if (ok) {
+          const { error } = await sb.rpc('approve_member', { member_id: m.id });
+          if (error) throw error;
+        } else {
+          await callAdminApi('/api/remove-member', { userId: m.id });
+        }
+        await loadProfiles();
+        setBadge('me', state.pending.length > 0);
+        toast(ok ? `${m.display_name} approved.` : `${m.display_name} declined.`);
+        draw();
+      } catch (err) {
+        toast(errMsg(err), 'error');
+        (ok || no).disabled = false;
+      }
+    });
+
+    root.querySelector('.members:not(.pending)').addEventListener('click', async (e) => {
       const b = e.target.closest('[data-remove]');
       if (!b) return;
       const m = state.profiles.get(b.dataset.remove);
