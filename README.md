@@ -49,6 +49,7 @@ Edit [`config.js`](config.js) in this repo and paste in the **Project URL** and 
 - **Sign-up**: friends tap **Create account** on the sign-in page, confirm their email, and they're in. To require admin approval instead, change `'approved'` to `'pending'` in `handle_new_user` in the schema — the Admin section then shows an Approve / Decline list.
 - **Admin** can approve, invite and remove members, and delete any memory, comment or event.
 - **Removing a member** deletes their account, uploads, comments, reactions, pokes, messages and the events they created.
+- **Install as an app (PWA)**: on Android/Chrome, open the **Me** tab and tap **Install app**. On iPhone, open the site in Safari → **Share** → **Add to Home Screen**. It opens full-screen with its own icon. App files are cached so it loads offline; photos, chats and other private data are never cached.
 - **Google Calendar**: each event has an "Add to Google Calendar" button that opens Google Calendar pre-filled. It's a copy — if the event changes in the app, tap the button again.
 
 ## Limits on the Supabase free plan
@@ -59,6 +60,9 @@ Edit [`config.js`](config.js) in this repo and paste in the **Project URL** and 
 ## Files
 ```
 index.html            app shell + bottom tabs
+manifest.webmanifest  install-as-app settings (name, icons, colours)
+sw.js                 service worker (offline app shell)
+icons/                app icons
 styles.css            all styling
 config.js             public Supabase URL + anon key (edit this)
 js/                   app code: login, memories, events, chat, friends, me/admin

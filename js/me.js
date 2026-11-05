@@ -1,4 +1,5 @@
 import { sb, state, me, isAdmin, esc, toast, errMsg, avatar, loadProfiles, setBadge, BUCKET } from './core.js';
+import { isInstalled, isIOS, canPrompt, promptInstall, onInstallChange } from './pwa.js';
 
 const MAX_AVATAR = 5 * 1024 * 1024;
 
@@ -38,6 +39,17 @@ export async function render(root) {
           <button class="btn btn-ghost" type="submit">Save name</button>
         </form>
       </section>
+
+      ${isInstalled() ? '' : `
+      <section class="panel panel-install">
+        <h2>Get the app</h2>
+        ${canPrompt()
+          ? `<p class="muted small">Add Banana Traveller to your home screen so it opens like a normal app.</p>
+             <button class="btn btn-primary" id="install" type="button" style="margin-top:10px">Install app</button>`
+          : isIOS()
+            ? `<p class="muted small">In Safari, tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</p>`
+            : `<p class="muted small">Open your browser menu and choose <b>Install app</b> or <b>Add to Home screen</b>.</p>`}
+      </section>`}
 
       <section class="panel">
         <h2>Password</h2>
@@ -120,6 +132,10 @@ export async function render(root) {
 
     root.querySelector('#signout').addEventListener('click', () => sb.auth.signOut());
 
+    root.querySelector('#install')?.addEventListener('click', async () => {
+      if (await promptInstall()) toast('Installed. Find Banana on your home screen.');
+    });
+
     if (!isAdmin()) return;
 
     root.querySelector('#invite-form').addEventListener('submit', async (e) => {
@@ -180,4 +196,5 @@ export async function render(root) {
   };
 
   draw();
+  return onInstallChange(draw);
 }

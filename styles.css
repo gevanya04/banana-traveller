@@ -250,6 +250,7 @@ body[data-view="chat-thread"] .tabbar { display: none; }
 /* ---------- me & admin ---------- */
 .panel { background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; margin-bottom: 14px; }
 .panel h2 { font-size: 1.2rem; }
+.panel-install { background: #fff8dc; border-color: #f5dd8a; }
 .panel-admin { border-color: var(--banana-deep); box-shadow: inset 4px 0 0 var(--banana); }
 .me-top { display: flex; align-items: center; gap: 14px; }
 .me-name { font-family: var(--head); font-weight: 800; font-size: 1.4rem; margin: 0; }

@@ -5,6 +5,7 @@ import * as events from './events.js';
 import * as chat from './chat.js';
 import * as friends from './friends.js';
 import * as meView from './me.js';
+import './pwa.js';
 
 const VIEWS = { feed, events, chat, friends, me: meView };
 const app = document.getElementById('app');
