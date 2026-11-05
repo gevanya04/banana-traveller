@@ -40,6 +40,13 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
 $$;
 
+-- Only the trigger may run handle_new_user; helpers are for signed-in members only
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.is_member() from public, anon;
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_member() to authenticated;
+grant execute on function public.is_admin() to authenticated;
+
 -- ---------- Memories (photos & videos) ----------
 create table if not exists public.memories (
   id          uuid primary key default gen_random_uuid(),
